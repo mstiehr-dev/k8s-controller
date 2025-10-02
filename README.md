@@ -10,6 +10,6 @@ docker build --push -t ttl.sh/${IMAGE_NAME}:1h .
 go mod tidy
 
 # further reading
-https://www.civo.com/learn/creating-a-kubernetes-operator-with-kubebuilder
-https://www.civo.com/learn/ttl-sh-your-anonymous-and-ephemeral-docker-image-registry
-https://www.civo.com/learn/get-a-wildcard-certificate-with-cert-manager-and-civo-dns
+[operators](https://www.civo.com/learn/creating-a-kubernetes-operator-with-kubebuilder)
+[ttl.sh](https://www.civo.com/learn/ttl-sh-your-anonymous-and-ephemeral-docker-image-registry)
+[cert-manager](https://www.civo.com/learn/get-a-wildcard-certificate-with-cert-manager-and-civo-dns)
