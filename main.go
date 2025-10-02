@@ -7,8 +7,8 @@ import (
 	"log"
 	"net/http"
 
-	"golang.org/x/exp/slog"
 	"github.com/mstiehr-dev/k8s-controller/internal/helpers"
+	"golang.org/x/exp/slog"
 )
 
 var (
@@ -16,8 +16,6 @@ var (
 	tlsKey  string
 	tlsCert string
 )
-
-
 
 func main() {
 	flag.IntVar(&port, "port", 9093, "Admisson controller port")
@@ -27,7 +25,7 @@ func main() {
 	slog.Info("loading certs..")
 	certs, err := tls.LoadX509KeyPair(tlsCert, tlsKey)
 	if err != nil {
-		slog.Error("unable to load certs","error", err)
+		slog.Error("unable to load certs", "error", err)
 	}
 
 	http.HandleFunc("/mutate", helpers.Mutate)

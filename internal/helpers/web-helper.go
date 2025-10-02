@@ -1,8 +1,8 @@
 package helpers
 
 import (
-	"net/http"
 	"golang.org/x/exp/slog"
+	"net/http"
 )
 
 func httpError(w http.ResponseWriter, err error) {

@@ -1,18 +1,19 @@
 package helpers
 
 import (
-	"io"
-	"errors"
-	"net/http"
 	"encoding/json"
-	"k8s.io/apimachinery/pkg/runtime"
-	admissionv1 "k8s.io/api/admission/v1"
+	"errors"
+	"github.com/mstiehr-dev/k8s-controller/internal/model"
 	"golang.org/x/exp/slog"
-	"k8s.io/apimachinery/pkg/runtime/serializer"
+	"io"
+	admissionv1 "k8s.io/api/admission/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"github.com/mstiehr-dev/k8s-controller/internal/model"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/serializer"
+	"net/http"
 )
+
 func parseAdmissionReview(req *http.Request, deserializer runtime.Decoder) (*admissionv1.AdmissionReview, error) {
 
 	reqData, err := io.ReadAll(req.Body)
