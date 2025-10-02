@@ -35,6 +35,8 @@ func parseAdmissionReview(req *http.Request, deserializer runtime.Decoder) (*adm
 func Mutate(w http.ResponseWriter, r *http.Request) {
 	slog.Info("recieved new mutate request")
 
+	var minReplicas int32 = 2 // TODO add configuration
+
 	scheme := runtime.NewScheme()
 	codecFactory := serializer.NewCodecFactory(scheme)
 	deserializer := codecFactory.UniversalDeserializer()
@@ -68,31 +70,48 @@ func Mutate(w http.ResponseWriter, r *http.Request) {
 		httpError(w, err)
 		return
 	}
-	var patches []model.PatchOperation
 
-	// Perform mutations or modifications to the Deployment object
-	patch := model.PatchOperation{
-		Op:    "replace",
-		Path:  "/spec/replicas",
-		Value: 3,
-	}
-
-	patches = append(patches, patch)
-
-	//marshal the patch into bytes
-	patchBytes, err := json.Marshal(patches)
-	if err != nil {
-		err := errors.New("unable to marshal patch into bytes")
-		httpError(w, err)
-		return
-	}
-
-	// Prepare the AdmissionResponse with the generated patch
 	admissionResponse := &admissionv1.AdmissionResponse{}
-	patchType := admissionv1.PatchTypeJSONPatch
 	admissionResponse.Allowed = true
-	admissionResponse.PatchType = &patchType
-	admissionResponse.Patch = patchBytes
+	if *deployment.Spec.Replicas >= minReplicas {
+		slog.Info("enough replicas - nothing to do") //, deployment.Spec.Replicas)
+	} else {
+		var patches []model.PatchOperation
+
+		// Perform mutations or modifications to the Deployment object
+		patchReplicas := model.PatchOperation{
+			Op:    "replace",
+			Path:  "/spec/replicas",
+			Value: minReplicas,
+		}
+		patches = append(patches, patchReplicas)
+
+		patchDeployLabels := model.PatchOperation{
+			Op:    "add",
+			Path:  "/metadata/labels/patched-by",
+			Value: "k8s-controller",
+		}
+		patches = append(patches, patchDeployLabels)
+
+		patchPodLabels := model.PatchOperation{
+			Op:    "add",
+			Path:  "/spec/template/metadata/labels/patched-by",
+			Value: "k8s-controller",
+		}
+		patches = append(patches, patchPodLabels)
+
+		//marshal the patch into bytes
+		patchBytes, err := json.Marshal(patches)
+		if err != nil {
+			err := errors.New("unable to marshal patch into bytes")
+			httpError(w, err)
+			return
+		}
+		slog.Info("patch: ", patchBytes)
+		patchType := admissionv1.PatchTypeJSONPatch
+		admissionResponse.PatchType = &patchType
+		admissionResponse.Patch = patchBytes
+	}
 
 	var admissionReviewResponse admissionv1.AdmissionReview
 	admissionReviewResponse.Response = admissionResponse
