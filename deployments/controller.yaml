@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: k8s-controller
+  name: k8s-controller
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: k8s-controller
+  template:
+    metadata:
+      labels:
+        app: k8s-controller
+    spec:
+      containers:
+        - image: ttl.sh/mstiehr-k8s-controller:1h
+          name: k8s-controller
+          imagePullPolicy: Always
+          args:
+            - --port=9093
+            - --tls-crt=/etc/webhook/certs/tls.crt
+            - --tls-key=/etc/webhook/certs/tls.key
+          ports:
+            - containerPort: 9093
+              name: webhook
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /etc/webhook/certs
+              name: certs
+      volumes:
+        - name: certs
+          secret:
+            secretName: root-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: k8s-controller
+  namespace: default
+spec:
+  selector:
+    app: k8s-controller
+  type: ClusterIP
+  ports:
+  - name: k8s-controller
+    protocol: TCP
+    port: 443
+    targetPort: 9093
